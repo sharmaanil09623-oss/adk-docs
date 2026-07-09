@@ -1,79 +1,51 @@
-# TypeScript Quickstart for ADK
+import os
+import speech_recognition as sr
+import pyttsx3
+import webbrowser
+import datetime
 
-This guide shows you how to get up and running with Agent Development Kit
-for TypeScript. Before you start, make sure you have the following installed:
+engine = pyttsx3.init()
 
-*   Node.js 24.13.0 or later
-*   Node Package Manager (npm) 11.8.0 or later
+def speak(text):
+    print("Deeva:", text)
+    engine.say(text)
+    engine.runAndWait()
 
-## Create an agent project
+def listen():
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Listening...")
+        audio = r.listen(source)
 
-Create an empty `my-agent` directory for your project:
+    try:
+        command = r.recognize_google(audio).lower()
+        print("You:", command)
+        return command
+    except:
+        return ""
 
-```none
-my-agent/
-```
+speak("Hello! I am Deeva. How can I help you?")
 
-??? tip "Create this project structure using the command line"
+while True:
+    command = listen()
 
-    === "MacOS / Linux"
+    if "hello" in command:
+        speak("Hello Anil!")
 
-        ```bash
-        mkdir -p my-agent/
-        ```
+    elif "time" in command:
+        speak("Current time is " + datetime.datetime.now().strftime("%I:%M %p"))
 
-    === "Windows"
+    elif "youtube" in command:
+        webbrowser.open("https://youtube.com")
+        speak("Opening YouTube")
 
-        ```console
-        mkdir my-agent
-        ```
+    elif "google" in command:
+        webbrowser.open("https://google.com")
+        speak("Opening Google")
 
-### Configure project and dependencies
-
-Use the `npm` tool to install and configure dependencies for your project,
-including the package file, ADK TypeScript main
-library, and developer tools. Run the following commands from your
-`my-agent/` directory to create the `package.json` file and install the
-project dependencies:
-
-```console
-cd my-agent/
-# initialize a project as an ES module
-npm init --yes
-npm pkg set type="module"
-npm pkg set main="agent.ts"
-# install ADK libraries
-npm install @google/adk
-# install dev tools as a dev dependency
-npm install -D @google/adk-devtools
-```
-
-### Define the agent code
-
-Create the code for a basic agent, including a simple implementation of an ADK
-[Function Tool](/tools-custom/function-tools/), called `getCurrentTime`.
-Create an `agent.ts` file in your project directory and add the following code:
-
-```typescript title="my-agent/agent.ts"
-import {FunctionTool, LlmAgent} from '@google/adk';
-import {z} from 'zod';
-
-/* Mock tool implementation */
-const getCurrentTime = new FunctionTool({
-  name: 'get_current_time',
-  description: 'Returns the current time in a specified city.',
-  parameters: z.object({
-    city: z.string().describe("The name of the city for which to retrieve the current time."),
-  }),
-  execute: ({city}) => {
-    return {status: 'success', report: `The current time in ${city} is 10:30 AM`};
-  },
-});
-
-export const rootAgent = new LlmAgent({
-  name: 'hello_time_agent',
-  model: 'gemini-flash-latest',
-  description: 'Tells the current time in a specified city.',
+    elif "exit" in command:
+        speak("Goodbye!")
+        break  description: 'Tells the current time in a specified city.',
   instruction: `You are a helpful assistant that tells the current time in a city.
                 Use the 'getCurrentTime' tool for this purpose.`,
   tools: [getCurrentTime],
@@ -141,17 +113,3 @@ npx adk web
 This command starts a web server with a chat interface for your agent. You can
 access the web interface at `http://localhost:8000`. Select your agent at the
 upper right corner and type a request.
-
-![adk-web-dev-ui-chat.png](/assets/adk-web-dev-ui-chat.png)
-
-!!! warning "Caution: ADK Web for development only"
-
-    ADK Web is ***not meant for use in production deployments***. You should
-    use ADK Web for development and debugging purposes only.
-
-## Next: Build your agent
-
-Now that you have ADK installed and your first agent running, try building
-your own agent with our build guides:
-
-*  [Build your agent](/tutorials/)
